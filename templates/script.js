@@ -1,45 +1,25 @@
 
-document.getElementById("filter-button").addEventListener("click", function() {
-    filterData();
-  });
+let startDateInput = document.getElementById("start_date");
+let endDateInput = document.getElementById("end_date");
 
-  function filterData() {
-    // Get start and end dates from input fields
-    var startDate = document.getElementById("start-date").value;
-    var endDate = document.getElementById("end-date").value;
+startDateInput.addEventListener("change", function() {
+        let startDate = startDateInput.value;
+        let endDate = endDateInput.value;
 
-    // Filter data based on date range
-    var filteredData = leaderboardData.filter(function(item) {
-      var commitDate = new Date(item.latest_commit_date);
-      return commitDate >= startDate && commitDate <= endDate;
-    });
+        leaderboard.filter_by_date_range(startDate, endDate);
+        leaderboard.group_by_user();
+        leaderboard.filter_users_with_no_exercises();
+        // update the view and progress board with the new data
+});
 
-    // Update view and progress board with filtered data
-    updateView(filteredData);
-    updateProgressBoard(filteredData);
-  }
+endDateInput.addEventListener("change", function() {
+        let startDate = startDateInput.value;
+        let endDate = endDateInput.value;
 
-  function filterData() {
-    // Get start and end dates from input fields
-    var startDate = document.getElementById("start-date").value;
-    var endDate = document.getElementById("end-date").value;
-
-    // Filter data based on date range
-    var filteredData = leaderboardData.filter(function(item) {
-      var commitDate = new Date(item.latest_commit_date);
-      return commitDate >= startDate && commitDate <= endDate;
-    });
-    var groupedData= filteredData.reduce(function(acc, current) {
-      acc[current.user] = acc[current.user] || [];
-      acc[current.user].push(current);
-      return acc;
-    }, {});
-
-    var user_data = Object.values(groupedData).filter(function(user) {
-      return user.length > 0;
-    });
-
-    // Update view and progress board with filtered data
-    updateView(user_data);
-    updateProgressBoard(user_data);
-  }
+        leaderboard.filter_by_date_range(startDate, endDate);
+        leaderboard.group_by_user();
+        leaderboard.filter_users_with_no_exercises();
+        
+        updateView(leaderboard.data);
+        updateProgressBoard(leaderboard.data);
+});
