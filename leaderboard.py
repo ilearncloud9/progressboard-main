@@ -134,6 +134,25 @@ class Leaderboard:
 
             if any(c == "success" for c in conclusions):
                 return "completed"
+            
+    def filter_by_date_range(self, start_date, end_date):
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        filtered_data = [entry for entry in self.data if start_date <= 
+    self.gh.get_repo_resource(self.org, entry["name"], "commits")
+    [0].get("commit").get("committer").get("date") <= end_date]
+        return filtered_data
+
+    def group_by_user(self, filtered_data):
+        grouped_data = defaultdict(list)
+        for entry in filtered_data:
+            grouped_data[entry["user"]].append(entry)
+        return grouped_data
+
+    def filter_users_with_no_exercises(self, grouped_data):
+        filtered_users = {user: exercises for user, exercises in 
+    grouped_data.items() if exercises}
+        return filtered_users
 
 
     @staticmethod
