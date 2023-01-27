@@ -4,16 +4,17 @@
   <head>
     <title>Leaderboard</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-    
+    <script href="{{ url_for('static', filename='script.js') }}"></script>
   </head>
 
   <body>
-    <script src="script.js"></script>
-    <label for="start-date">Start Date:</label>
-    <input type="date" id="start_date">
-    <label for="end-date">End Date:</label>
-    <input type="date" id="end_date">
-    <button id="filter-button">Filter</button>
+    <form>
+      <label for="start-date">Start Date:</label>
+      <input type="date" id="start-date" name="start-date">
+      <label for="end-date">End Date:</label>
+      <input type="date" id="end-date" name="end-date">
+      <button type="submit" id="submit-date-range">Submit</button>
+    </form>
     {% include 'header.html' %}
     {% block content %}{% endblock %}
     {% include 'footer.html' %}
