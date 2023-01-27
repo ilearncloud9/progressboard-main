@@ -83,3 +83,4 @@ function updateProgressBoard(data) {
     progressBoard.appendChild(progressDiv);
   }
 }
+
