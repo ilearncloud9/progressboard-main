@@ -1,86 +1,81 @@
-// event listener for the submit button
-document.getElementById("submit-date-range").addEventListener("click", function(event){
-  event.preventDefault();
-  // Get the start and end date from the input fields
-  var startDate = new Date(document.getElementById("start-date").value);
-  var endDate = new Date(document.getElementById("end-date").value);
-  //filter data by the date range
-  var filteredData = data.filter(function(d){
-    var commitDate = new Date(d.latest_commit_url);
-    return commitDate >= startDate && commitDate <= endDate;
-  });
-  // Group the filtered data by user
-  var groupedData = filteredData.reduce(function(acc, curr) {
-    acc[curr.user] = acc[curr.user] || [];
-    acc[curr.user].push(curr);
-    return acc;
-  }, {});
+const submitButton = document.getElementById("submit-date-range");
+const startDate = document.getElementById("start-date");
+const endDate = document.getElementById("end-date");
+const leaderboardTable = document.getElementById("man-heatmap");
 
-  // Iterate through the grouped data and check if each user has at least one exercise in the current selection
-  for (var user in groupedData) {
-    var hasExercise = false;
-    for (var i = 0; i < groupedData[user].length; i++) {
-      if (groupedData[user][i].exercise) {
-        hasExercise = true;
-        break;
+submitButton.addEventListener("click", (event) => {
+  event.preventDefault();
+  const start = startDate.value;
+  const end = endDate.value;
+  
+  // make an API call to the server to retrieve the filtered data
+  fetch("/leaderboard?start=" + start + "&end=" + end)
+    .then((response) => response.json())
+    .then((data) => {
+      // Clear the existing leaderboard table
+      while (leaderboardTable.firstChild) {
+        leaderboardTable.removeChild(leaderboardTable.firstChild);
       }
-    }
-    // If the user does not have any exercises in the current selection, remove them from the grouped data
-    if (!hasExercise) {
-      delete groupedData[user];
-    }
-  }
-  // Update the view and progress board with the filtered and grouped data
-  updateView(groupedData);
-  updateProgressBoard(groupedData);
+
+      // Create and append the new table with the filtered data
+      const table = createTable(data);
+      leaderboardTable.appendChild(table);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 });
 
-function updateView(data) {
-  // Clear the current view
-  var view = document.getElementById("view");
-  view.innerHTML = "";
-  // Iterate through the grouped data and create elements to display the information
-  for (var user in data) {
-    var userDiv = document.createElement("div");
-    userDiv.classList.add("user");
-    var userName = document.createElement("h2");
-    userName.innerText = user;
-    userDiv.appendChild(userName);
-    for (var i = 0; i < data[user].length; i++) {
-      var exercise = data[user][i];
-      var exerciseDiv = document.createElement("div");
-      exerciseDiv.classList.add("exercise");
-      var exerciseName = document.createElement("p");
-      exerciseName.innerText = exercise.name;
-      exerciseDiv.appendChild(exerciseName);
-      userDiv.appendChild(exerciseDiv);
-    }
-    view.appendChild(userDiv);
-  }
-}
+function createTable(data) {
+  // Create the table and headers
+  const table = document.createElement("table");
+  table.id = "man-heatmap";
+  const headerRow = document.createElement("tr");
+  headerRow.className = "header";
+  const colorTitle = document.createElement("th");
+  colorTitle.className = "color title";
+  headerRow.appendChild(colorTitle);
 
-function updateProgressBoard(data) {
-  // Clear the current progress board
-  var progressBoard = document.getElementById("progress-board");
-  progressBoard.innerHTML = "";
-  // Iterate through the grouped data and calculate progress
-  for (var user in data) {
-    var userProgress = 0;
-    for (var i = 0; i < data[user].length; i++) {
-      var exercise = data[user][i];
-      userProgress += exercise.progress;
-    }
-    var averageProgress = (userProgress / data[user].length).toFixed(2);
-    var progressDiv = document.createElement("div");
-    progressDiv.classList.add("progress");
-    var userName = document.createElement("h3");
-    userName.innerText = user;
-    progressDiv.appendChild(userName);
-    var progressBar = document.createElement("div");
-    progressBar.classList.add("progress-bar");
-    progressBar.style.width = averageProgress + "%";
-    progressDiv.appendChild(progressBar);
-    progressBoard.appendChild(progressDiv);
+  // Append the session headers
+  for (let i = 1; i <= 15; i++) {
+    const sessionHeader = document.createElement("th");
+    sessionHeader.className = "color session";
+    const sessionLink = document.createElement("a");
+    sessionLink.href = "#";
+    sessionLink.textContent = i;
+    sessionHeader.appendChild(sessionLink);
+    headerRow.appendChild(sessionHeader);
   }
-}
+  table.appendChild(headerRow);
 
+  // Append the rows for each user
+  for (let user in data) {
+    const userRow = document.createElement("tr");
+    const nameHeader = document.createElement("th");
+    nameHeader.className = "color name";
+    const nameLink = document.createElement("a");
+    nameLink.href = data[user][0]["user_url"];
+    const nameImg = document.createElement("img");
+    nameImg.src = data[user][0]["avatar"];
+    nameImg.alt = user;
+    nameLink.appendChild(nameImg);
+    nameHeader.appendChild(nameLink);
+    userRow.appendChild(nameHeader);
+
+    // Append the cells for each exercise
+    for (let i = 1; i <= 15; i++) {
+      const exerciseCell = document.createElement("td");
+      exerciseCell.className = "color exercise";
+      const exerciseLink = document.createElement("a");
+      exerciseLink.href =data[user][i]["exercise_url"];
+      const exerciseImg = document.createElement("img");
+      exerciseImg.src = data[user][i]["exercise_img"];
+      exerciseImg.alt = data[user][i]["exercise_name"];
+      exerciseLink.appendChild(exerciseImg);
+      exerciseCell.appendChild(exerciseLink);
+      userRow.appendChild(exerciseCell);
+      }
+      table.appendChild(userRow);
+      }
+      return table;
+      }
