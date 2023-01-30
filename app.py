@@ -18,6 +18,20 @@ def heatmap():
     return render_template(
         "heatmap.html",
         user_repos=user_repos,
+        start_date=datetime.datetime.now().strftime("%Y-%m-%d"),
+        end_date=datetime.datetime.now().strftime("%Y-%m-%d"),
+    )
+
+@app.route("/", methods=["POST"])
+def heatmap_filter():
+    start_date = request.form["start_date"]
+    end_date = request.form["end_date"]
+    leaderboard.get_user_data(start_date, end_date)
+    return render_template(
+        "heatmap.html",
+        user_repos=user_repos,
+        start_date=start_date,
+        end_date=end_date,
     )
 
 @app.route("/semester/<string:semester>")
@@ -30,6 +44,8 @@ def heatmap_semester(semester):
         user_repos = {user:user_repos[user] for user in users},
         semester = semester
     )
+
+
 
 
 @app.route("/updates")
