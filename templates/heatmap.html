@@ -4,6 +4,13 @@
   <h1>ProgressBoard</h1>
 </div>
 <div class="responsive-wrapper">
+<form action="/" method="post">
+  <label for="start_date">Start Date:</label>
+  <input type="text" id="start_date" name="start_date" value="{{ start_date }}">
+  <label for="end_date">End Date:</label>
+  <input type="text" id="end_date" name="end_date" value="{{ end_date }}">
+  <input type="submit" value="Filter">
+</form>
 <table id="man-heatmap">
   <tr class='header'>
     <th class='color title'></th>
