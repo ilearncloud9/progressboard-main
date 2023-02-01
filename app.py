@@ -4,35 +4,38 @@ from leaderboard import Leaderboard
 from collections import defaultdict
 import requests as rq
 import json
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
 
 user_repos = json.load(open("dumps/user_repos.json"))
-# leaderboard = Leaderboard(org="DB-Teaching")
 repos = json.load(open("dumps/repos.json"))
 data = json.load(open("dumps/data.json"))
 
-@app.route("/")
+@app.route("/", methods=['GET', 'POST'])
 def heatmap():
+    if request.method == 'POST':
+        firstdate = request.form.get('firstdate')
+        seconddate = request.form.get('seconddate')
+        data_filtered = []
+        for i in data:
+            if i['commit']['author']['date'] >= firstdate and i['commit']['author']['date'] <= seconddate:
+                data_filtered.append(i)
+            else:
+                print("Key 'commit' not found in the dictionary.")
+                continue  
+        return render_template(
+            "heatmap.html",
+            user_repos=user_repos,
+            data=data_filtered
+        )
     return render_template(
         "heatmap.html",
         user_repos=user_repos,
-        start_date=datetime.datetime.now().strftime("%Y-%m-%d"),
-        end_date=datetime.datetime.now().strftime("%Y-%m-%d"),
+        data=data
     )
 
-@app.route("/", methods=["POST"])
-def heatmap_filter():
-    start_date = request.form["start_date"]
-    end_date = request.form["end_date"]
-    leaderboard.get_user_data(start_date, end_date)
-    return render_template(
-        "heatmap.html",
-        user_repos=user_repos,
-        start_date=start_date,
-        end_date=end_date,
-    )
 
 @app.route("/semester/<string:semester>")
 def heatmap_semester(semester):
@@ -117,4 +120,4 @@ def github_push():
     return data
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
