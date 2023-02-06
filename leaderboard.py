@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dotenv import load_dotenv  # for python-dotenv method
 from githubapi import GithubAPI
-from datetime import datetime
+
 # import json
 import os
 
@@ -17,7 +17,7 @@ load_dotenv()  # for python-dotenv method
 class Leaderboard:
     def __init__(
         self,
-        user="dominikb1888",
+        user="ilearncloud9",
         key=os.environ.get("GHTOKEN"),
         endpoint="https://api.github.com",
         org="DB-Teaching",
@@ -33,7 +33,6 @@ class Leaderboard:
         # self.relative = self._gen_heatmap_rel()
         # self.heatmap = self._gen_plot()
 
-
     @property
     def user_repos(self):
         user_data = defaultdict(list)
@@ -44,7 +43,6 @@ class Leaderboard:
                     user_data[user.get("login")].append(repo)
 
         return user_data
-        
 
     def _get_table(self):
         df = []
@@ -55,7 +53,7 @@ class Leaderboard:
             session, exercise = self._split_repo_name(repo.get("name"))
             commits = self.gh.get_repo_resource(self.org, repo.get("name"), "commits")
             user_name, user_avatar, user_link = (None, None, None)
-            commit_url, comment_count, commit_date = self.get_latest_commit(commits)
+            commit_url, comment_count = self.get_latest_commit(commits)
 
             for user in self.users:
                 if user.get("login") in repo.get("name"):
@@ -76,7 +74,6 @@ class Leaderboard:
                     "url": repo.get("html_url"),
                     "user": user_name if user_name else "dominikb1888",
                     "user_url": user_link,
-                    "last_commit": get_latest_commit,
                     "created_at": repo.get("created_at"),
                     "updated_at": repo.get("updated_at"),
                 }
@@ -93,18 +90,14 @@ class Leaderboard:
                 "github-classroom",
             ]]
 
-    def get_latest_commit(self, commits, firstdate, seconddate):
-    # Filter commits based on the date range entered by the user
-        filtered_commits = [commit for commit in commits if firstdate <= commit['commit']['author']['date'] <= seconddate]
-        # Sort filtered commits based on the date
-        ordered_commits = sorted(self.filter_bot_commits(filtered_commits), key=lambda d: d['commit']['author']['date'])
-        # Get the latest commit
+    def get_latest_commit(self, commits):
+        ordered_commits = sorted(self.filter_bot_commits(commits), key=lambda d: d['commit']['author']['date'])
         if len(ordered_commits) > 0:
             comment_count = ordered_commits[-1].get("comment_count", False)
-            return ordered_commits[-1]["html_url"], comment_count, ordered_commits[-1]['commit']['author']['date']
+            return ordered_commits[-1]["html_url"], comment_count
         else:
-            return False, False, None
-    
+            return False, False
+
 
     def get_status(self, commits, repo):
         """Returns the status of a repo based on workflow runs"""
