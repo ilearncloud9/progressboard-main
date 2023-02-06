@@ -38,9 +38,19 @@ class Leaderboard:
         user_data = defaultdict(list)
         for repo in self.data:
             # if repo["user"]:
+            repo['commits'] = []
+            
+            commits = self.gh.get_repo_resource(self.org, repo.get("name"), "commits")
+            for commit in filter_bot_commits:
+                repo['commits'].append({
+                    'commit': commit['commit'],
+                    'parents': commit['parent'],
+                })
             for user in self.users:
                 if user.get("login") == repo.get("user"):
                     user_data[user.get("login")].append(repo)
+            
+
 
         return user_data
 
@@ -53,7 +63,7 @@ class Leaderboard:
             session, exercise = self._split_repo_name(repo.get("name"))
             commits = self.gh.get_repo_resource(self.org, repo.get("name"), "commits")
             user_name, user_avatar, user_link = (None, None, None)
-            commit_url, comment_count = self.get_latest_commit(commits)
+            commit_url, comment_count, commits = self.get_latest_commit(commits)
 
             for user in self.users:
                 if user.get("login") in repo.get("name"):
@@ -76,6 +86,7 @@ class Leaderboard:
                     "user_url": user_link,
                     "created_at": repo.get("created_at"),
                     "updated_at": repo.get("updated_at"),
+                    "commits": [commit['commit']['author']['date'] for commit in commits].join('/')
                 }
             )
 
@@ -95,9 +106,9 @@ class Leaderboard:
         ordered_commits = sorted(filtered_commits, key=lambda d: d['commit']['author']['date'])
         if len(ordered_commits) > 0:
             comment_count = ordered_commits[-1].get("comment_count", False)
-            return ordered_commits[-1]["html_url"], comment_count
+            return ordered_commits[-1]["html_url"], comment_count, ordered_commits
         else:
-            return False, False
+            return False, False, []
 
 
 
