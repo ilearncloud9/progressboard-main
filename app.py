@@ -1,41 +1,55 @@
-import datetime
 from flask import Flask, request, json, abort, jsonify, render_template
 from leaderboard import Leaderboard
 from collections import defaultdict
+from datetime import datetime
 import requests as rq
 import json
-from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
 
-user_repos = json.load(open("dumps/user_repos.json"))
+# user_repos = json.load(open("user_repos.json"))
+user_repos = json.load(open("dumps/user_repos_1.json"))
 repos = json.load(open("dumps/repos.json"))
 data = json.load(open("dumps/data.json"))
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/")
 def heatmap():
-    if request.method == 'POST':
-        firstdate = request.form.get('firstdate')
-        seconddate = request.form.get('seconddate')
-        data_filtered = []
-        for i in data:
-            if i['commit']['author']['date'] >= firstdate and i['commit']['author']['date'] <= seconddate:
-                data_filtered.append(i)
-            else:
-                print("Key 'commit' not found in the dictionary.")
-                continue  
-        return render_template(
-            "heatmap.html",
-            user_repos=user_repos,
-            data=data_filtered
-        )
+    updated_at__gte = request.args.get("updated_at__gte")
+    updated_at__lte = request.args.get("updated_at__lte")
+    created_at__gte = request.args.get("created_at__gte")
+    created_at__lte = request.args.get("created_at__lte")
+
+    filtered_items = user_repos
+
+    if updated_at__lte:
+        val = datetime.strptime(updated_at__lte, '%Y-%m-%d')
+        filtered_items = {key: [item for item in values if item.get('updated_at') is not None and val > datetime.strptime(item.get('updated_at'), "%Y-%m-%dT%H:%M:%SZ")] for key, values in filtered_items.items() }
+        filtered_items = {key: values for key, values in filtered_items.items() if len(values) > 0 }
+    
+    if updated_at__gte:
+        val = datetime.strptime(updated_at__gte, '%Y-%m-%d')
+        filtered_items = {key: [item for item in values if item.get('updated_at') is not None and val < datetime.strptime(item.get('updated_at'), "%Y-%m-%dT%H:%M:%SZ")] for key, values in filtered_items.items() }
+        filtered_items = {key: values for key, values in filtered_items.items() if len(values) > 0 }
+
+    if created_at__lte:
+        val = datetime.strptime(created_at__lte, '%Y-%m-%d')
+        filtered_items = {key: [item for item in values if item.get('created_at') is not None and val > datetime.strptime(item.get('created_at'), "%Y-%m-%dT%H:%M:%SZ")] for key, values in filtered_items.items() }
+        filtered_items = {key: values for key, values in filtered_items.items() if len(values) > 0 }
+    
+    if created_at__gte:
+        val = datetime.strptime(created_at__gte, '%Y-%m-%d')
+        filtered_items = {key: [item for item in values if item.get('created_at') is not None and val < datetime.strptime(item.get('created_at'), "%Y-%m-%dT%H:%M:%SZ")] for key, values in filtered_items.items() }
+        filtered_items = {key: values for key, values in filtered_items.items() if len(values) > 0 }
+
     return render_template(
         "heatmap.html",
-        user_repos=user_repos,
-        data=data
+        user_repos=filtered_items,
+        created_at__gte=created_at__gte if created_at__gte else "",
+        created_at__lte=created_at__lte if created_at__lte else "",
+        updated_at__gte=updated_at__gte if updated_at__gte else "",
+        updated_at__lte=updated_at__lte if updated_at__lte else "",
     )
-
 
 @app.route("/semester/<string:semester>")
 def heatmap_semester(semester):
@@ -53,9 +67,38 @@ def heatmap_semester(semester):
 
 @app.route("/updates")
 def updates():
+
+    updated_at__gte = request.args.get("updated_at__gte")
+    updated_at__lte = request.args.get("updated_at__lte")
+    created_at__gte = request.args.get("created_at__gte")
+    created_at__lte = request.args.get("created_at__lte")
+
+    filtered_items = repos
+
+    if updated_at__lte:
+        val = datetime.strptime(updated_at__lte, '%Y-%m-%d')
+        filtered_items = [item for item in filtered_items if item.get('updated_at') is not None and val > datetime.strptime(item.get('updated_at'), "%Y-%m-%dT%H:%M:%SZ")]
+    
+    if updated_at__gte:
+        val = datetime.strptime(updated_at__gte, '%Y-%m-%d')
+        filtered_items = [item for item in filtered_items if item.get('updated_at') is not None and val < datetime.strptime(item.get('updated_at'), "%Y-%m-%dT%H:%M:%SZ")]
+
+    if created_at__lte:
+        val = datetime.strptime(created_at__lte, '%Y-%m-%d')
+        filtered_items = [item for item in filtered_items if item.get('created_at') is not None and val > datetime.strptime(item.get('created_at'), "%Y-%m-%dT%H:%M:%SZ")]
+    
+    if created_at__gte:
+        val = datetime.strptime(created_at__gte, '%Y-%m-%d')
+        filtered_items = [item for item in filtered_items if item.get('created_at') is not None and val < datetime.strptime(item.get('created_at'), "%Y-%m-%dT%H:%M:%SZ")]
+
+
     return render_template(
         "list.html",
-        repos=repos,
+        repos=filtered_items,
+        created_at__gte=created_at__gte if created_at__gte else "",
+        created_at__lte=created_at__lte if created_at__lte else "",
+        updated_at__gte=updated_at__gte if updated_at__gte else "",
+        updated_at__lte=updated_at__lte if updated_at__lte else "",
     )
 
 
@@ -120,4 +163,4 @@ def github_push():
     return data
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

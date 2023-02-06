@@ -4,6 +4,32 @@
   <h1>ProgressBoard</h1>
 </div>
 <body>
+  
+<form method="get" class="flex-row justify-center" id="filter-form">
+  <div class="flex-col form-input">
+    <label for="created_at__gte">Created At(Greater than)</label>
+    <input placeholder="YYYY-mm-dd" id="created_at__gte" name="created_at__gte" value="{{created_at__gte}}" />
+  </div>
+  <div class="flex-col form-input">
+    <label for="created_at__lte">Created At(Less than)</label>
+    <input placeholder="YYYY-mm-dd" id="created_at__lte" name="created_at__lte" value="{{created_at__lte}}" />
+  </div>
+
+
+  <div class="flex-col form-input">
+    <label for="updated_at_at__gte">Updated At(Greater than)</label>
+    <input placeholder="YYYY-mm-dd" id="updated_at__gte" name="updated_at__gte" value="{{updated_at__gte}}" />
+  </div>
+
+  <div class="flex-col form-input">
+    <label for="updated_at__lte">Updated At(Less than)</label>
+    <input placeholder="YYYY-mm-dd" id="updated_at__lte" name="updated_at__lte" value="{{updated_at__lte}}" />
+  </div>
+<div class="flex-row items-end">
+<button class="btn">Filter results</button>
+</div>
+</form>
+
   <form method="post">
     First date: <input type="date" name="firstdate">
     Second date: <input type="date" name="seconddate">

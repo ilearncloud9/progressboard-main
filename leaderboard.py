@@ -55,7 +55,7 @@ class Leaderboard:
             session, exercise = self._split_repo_name(repo.get("name"))
             commits = self.gh.get_repo_resource(self.org, repo.get("name"), "commits")
             user_name, user_avatar, user_link = (None, None, None)
-            commit_url, comment_count = self.get_latest_commit(commits)
+            commit_url, comment_count, commit_date = self.get_latest_commit(commits)
 
             for user in self.users:
                 if user.get("login") in repo.get("name"):
@@ -76,6 +76,9 @@ class Leaderboard:
                     "url": repo.get("html_url"),
                     "user": user_name if user_name else "dominikb1888",
                     "user_url": user_link,
+                    "last_commit": get_latest_commit,
+                    "created_at": repo.get("created_at"),
+                    "updated_at": repo.get("updated_at"),
                 }
             )
 
@@ -98,9 +101,9 @@ class Leaderboard:
         # Get the latest commit
         if len(ordered_commits) > 0:
             comment_count = ordered_commits[-1].get("comment_count", False)
-            return ordered_commits[-1]["html_url"], comment_count
+            return ordered_commits[-1]["html_url"], comment_count, ordered_commits[-1]['commit']['author']['date']
         else:
-            return False, False
+            return False, False, None
     
 
     def get_status(self, commits, repo):
