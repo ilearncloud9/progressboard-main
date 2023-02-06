@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.config["DEBUG"] = True
 
 # user_repos = json.load(open("user_repos.json"))
-user_repos = json.load(open("dumps/user_repos_1.json"))
+user_repos = json.load(open("dumps/user_repos.json"))
 repos = json.load(open("dumps/repos.json"))
 data = json.load(open("dumps/data.json"))
 
