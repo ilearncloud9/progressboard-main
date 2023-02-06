@@ -17,7 +17,7 @@ load_dotenv()  # for python-dotenv method
 class Leaderboard:
     def __init__(
         self,
-        user="ilearncloud9",
+        user="dominikb1888",
         key=os.environ.get("GHTOKEN"),
         endpoint="https://api.github.com",
         org="DB-Teaching",
