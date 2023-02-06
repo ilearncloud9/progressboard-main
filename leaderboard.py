@@ -90,13 +90,15 @@ class Leaderboard:
                 "github-classroom",
             ]]
 
-    def get_latest_commit(self, commits):
-        ordered_commits = sorted(self.filter_bot_commits(commits), key=lambda d: d['commit']['author']['date'])
+    def get_latest_commit(self, commits, start_date, end_date):
+        filtered_commits = [commit for commit in self.filter_bot_commits(commits) if start_date <= commit['commit']['author']['date'] <= end_date]
+        ordered_commits = sorted(filtered_commits, key=lambda d: d['commit']['author']['date'])
         if len(ordered_commits) > 0:
             comment_count = ordered_commits[-1].get("comment_count", False)
             return ordered_commits[-1]["html_url"], comment_count
         else:
             return False, False
+
 
 
     def get_status(self, commits, repo):
