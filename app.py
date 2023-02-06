@@ -16,16 +16,16 @@ data = json.load(open("dumps/data.json"))
 @app.route("/", methods=["GET", "POST"])
 def heatmap():
     if request.method == "POST":
-        updated_at__gte = request.form.get("updated_at__gte")
-        updated_at__lte = request.form.get("updated_at__lte")
+        start_date = request.form.get("start_date")
+        end_date = request.form.get("end_date")
     else:
-        updated_at__gte = request.args.get("updated_at__gte")
-        updated_at__lte = request.args.get("updated_at__lte")
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
 
     filtered_items = user_repos
 
-    if updated_at__lte:
-        val = datetime.strptime(updated_at__lte, '%Y-%m-%d')
+    if end_date:
+        val = datetime.strptime(end_date, '%Y-%m-%d')
         filtered_items = {
             key: [
                 item for item in values
@@ -36,8 +36,8 @@ def heatmap():
         }
         filtered_items = {key: values for key, values in filtered_items.items() if len(values) > 0}
 
-    if updated_at__gte:
-        val = datetime.strptime(updated_at__gte, '%Y-%m-%d')
+    if start_date:
+        val = datetime.strptime(start_date, '%Y-%m-%d')
         filtered_items = {
             key: [
                 item for item in values
@@ -48,11 +48,12 @@ def heatmap():
         }
         filtered_items = {key: values for key, values in filtered_items.items() if len(values) > 0}
 
+    
     return render_template(
         "heatmap.html",
         user_repos=filtered_items,
-        updated_at__gte=updated_at__gte if updated_at__gte else "",
-        updated_at__lte=updated_at__lte if updated_at__lte else "",
+        start_date=start_date if start_date else "",
+        end_date=end_date if end_date else "",
     )
 
 
@@ -73,27 +74,27 @@ def heatmap_semester(semester):
 @app.route("/updates", methods=["GET", "POST"])
 def updates():
     if request.method == "POST":
-        updated_at__gte = request.form.get("updated_at__gte")
-        updated_at__lte = request.form.get("updated_at__lte")
+        start_date = request.form.get("start_date")
+        end_date = request.form.get("end_date")
     else:
-        updated_at__gte = request.args.get("updated_at__gte")
-        updated_at__lte = request.args.get("updated_at__lte")
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
 
     filtered_items = repos
 
-    if updated_at__lte:
-        val = datetime.strptime(updated_at__lte, '%Y-%m-%d')
+    if end_date:
+        val = datetime.strptime(end_date, '%Y-%m-%d')
         filtered_items = [item for item in filtered_items if item.get('updated_at') is not None and val > datetime.strptime(item.get('updated_at'), "%Y-%m-%dT%H:%M:%SZ")]
     
-    if updated_at__gte:
-        val = datetime.strptime(updated_at__gte, '%Y-%m-%d')
+    if start_date:
+        val = datetime.strptime(start_date, '%Y-%m-%d')
         filtered_items = [item for item in filtered_items if item.get('updated_at') is not None and val < datetime.strptime(item.get('updated_at'), "%Y-%m-%dT%H:%M:%SZ")]
 
     return render_template(
         "list.html",
         repos=filtered_items,
-        updated_at__gte=updated_at__gte if updated_at__gte else "",
-        updated_at__lte=updated_at__lte if updated_at__lte else "",
+        start_date=start_date if start_date else "",
+        end_date=end_date if end_date else "",
     )
 
 
