@@ -13,6 +13,15 @@ user_repos = json.load(open("dumps/user_repos.json"))
 repos = json.load(open("dumps/repos.json"))
 data = json.load(open("dumps/data.json"))
 
+
+def filtered_commits(commits, lte, gte):
+    ret = commits
+    if lte is not None:
+        ret = [commit for commit in commits if lte > datetime.strptime(commit['commit']['author']['date'], "%Y-%m-%dT%H:%M:%SZ")]
+    if gte is not None:
+        ret = [commit for commit in commits if gte < datetime.strptime(commit['commit']['author']['date'], "%Y-%m-%dT%H:%M:%SZ")]
+    return ret
+
 @app.route("/", methods=["GET", "POST"])
 def heatmap():
     if request.method == "POST":
@@ -23,31 +32,22 @@ def heatmap():
         end_date = request.args.get("end_date")
 
     filtered_items = user_repos
-
+    
     if end_date:
         val = datetime.strptime(end_date, '%Y-%m-%d')
-        filtered_items = {
-            key: [
-                item for item in values
-                if item.get('updated_at') is not None
-                and val > datetime.strptime(item.get('updated_at'), "%Y-%m-%dT%H:%M:%SZ")
-            ]
-            for key, values in filtered_items.items()
-        }
-        filtered_items = {key: values for key, values in filtered_items.items() if len(values) > 0}
-
+        filtered_items = {key: [
+            {**item, 'commits': filtered_commits(item['commits'], val, None) } for item in values 
+            if len(filtered_commits(item['commits'], val, None)) > 0
+            ] for key, values in filtered_items.items() }
+        filtered_items = {key: values for key, values in filtered_items.items() if len(values) > 0 }
+    
     if start_date:
         val = datetime.strptime(start_date, '%Y-%m-%d')
-        filtered_items = {
-            key: [
-                item for item in values
-                if item.get('updated_at') is not None
-                and val < datetime.strptime(item.get('updated_at'), "%Y-%m-%dT%H:%M:%SZ")
-            ]
-            for key, values in filtered_items.items()
-        }
-        filtered_items = {key: values for key, values in filtered_items.items() if len(values) > 0}
-
+        filtered_items = {key: [
+            {**item, 'commits': filtered_commits(item['commits'], None, val) } for item in values 
+            if len(filtered_commits(item['commits'], None, val)) > 0
+            ] for key, values in filtered_items.items() }
+        filtered_items = {key: values for key, values in filtered_items.items() if len(values) > 0 }
     
     return render_template(
         "heatmap.html",
